@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ecommerce.model.Item;
@@ -78,7 +80,6 @@ public class Controller {
 		if (item == null) {
 			return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
 		}
-
 		itemRepository.deleteByitemid(id);
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
@@ -87,15 +88,16 @@ public class Controller {
 	public List<Orders> getAllOrders(HttpServletRequest request) {
 		return orderRepository.findAll();
 	}
+
 	@PostMapping("/orders/{itemid}")
-	public Map<String,String> createOrder(@PathVariable("itemid") int id) {
+	public Map<String, String> createOrder(@PathVariable("itemid") int id) {
 		Item item = (Item) itemRepository.findByitemid(id);
-		Map<String,String> result = new HashMap<>();
+		Map<String, String> result = new HashMap<>();
 		if (item == null) {
 			result.put("status", "Item Not Found");
 			return result;
 		}
-		if(item.getItemstatus().equals("sold")) {
+		if (item.getItemstatus().equals("sold")) {
 			result.put("status", " out of stock");
 			return result;
 		}
@@ -110,4 +112,32 @@ public class Controller {
 		result.put("status", "Order Succesful");
 		return result;
 	}
+
+	@RequestMapping(value = "/orders", params = "ids", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<Integer, String> getBooksById_params(@RequestParam List<Integer> ids) {
+		Map<Integer, String> result = new HashMap<>();
+		for (Object obj : ids) {
+			Integer itemid = (Integer) obj;
+			Item item = (Item) itemRepository.findByitemid(itemid);
+			if (item == null) {
+				result.put(itemid, "Item Not Found");
+			} else if (item.getItemstatus().equals("sold")) {
+				result.put(itemid, " out of stock");
+
+			} else {
+				item.setItemstatus("sold");
+				itemRepository.save(item);
+				Date date = new Date();
+				Orders orders = new Orders();
+				orders.setItemid(itemid);
+				orders.setUserid(1);
+				orders.setOrderdate(date);
+				orderRepository.save(orders);
+				result.put(itemid, "Order Succesful");
+			}
+		}
+		return result;
+	}
+
 }
