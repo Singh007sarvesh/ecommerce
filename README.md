@@ -25,4 +25,8 @@ http://localhost:8080/api/eca/orders
 
 #APIFOR Single & bulk order
 
-http://localhost:8080/api/eca/orders/id http://localhost:8080/api/eca/orders?ids=5,65,42,1,4
+
+http://localhost:8080/api/eca/orders/id 
+
+
+http://localhost:8080/api/eca/orders?ids=5,65,42,1,4
